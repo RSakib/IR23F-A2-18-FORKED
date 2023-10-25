@@ -18,14 +18,13 @@ def extract_next_links(url, resp):
     # resp.url: the actual url of the page
     # resp.status: the status code returned by the server. 200 is OK, you got the page. Other numbers mean that there was some kind of problem.
     # resp.error: when status is not 200, you can check the error here, if needed.
-
+    next_links = []
     if(resp.status == 200):
 
         soup = BeautifulSoup(resp.raw_response.content, "html.parser")
         links = soup.find_all('a')
         dummycounter = 0
         counter = 50
-        next_links = []
         for link in links:
             dummy_link = link.get('href')
             dummycounter += 1
@@ -61,22 +60,26 @@ def is_valid(url):
         parsed = urlparse(url)
         #need to check for valid domains
         valid_domains = [".ics.uci.edu", "cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu"]
-
         if parsed.scheme not in set(["http", "https"]):
             return False
         # making sure that the url has a network location or a hostname before continuing
         if parsed.netloc == None or parsed.hostname == None:
             return False
-        # making sure that the hostname is within the domains we are limited to
-        # Doesnt really work yet - Kevin
-        # for domain in valid_domains:
-        #     if domain not in parsed.hostname:
-        #         return False
 
+        #Ensure url is within specific domains
+        inDomain = False
+        for domain in valid_domains:
+            if domain in parsed.hostname:
+                inDomain = True
+        if not inDomain:
+            #If not in domain, return false
+            return False
+        #Check Robots.txt
         rTxt.set_url(parsed.scheme + "://" + parsed.netloc + "/robots.txt")
         rTxt.read()
         if not (rTxt.can_fetch("*", url)):
-            return false
+            print("Robots.txt, url disallowed")
+            return False
 
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"

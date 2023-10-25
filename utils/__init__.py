@@ -3,6 +3,7 @@ import logging
 from hashlib import sha256
 from urllib.parse import urlparse
 
+
 def get_logger(name, filename=None):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)

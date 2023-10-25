@@ -95,6 +95,3 @@ def is_valid(url):
         print ("TypeError for ", parsed)
         raise
     
-
-if __name__ == "__main__":
-    is_valid(sys.argv[1])

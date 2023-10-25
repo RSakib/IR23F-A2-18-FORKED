@@ -1,6 +1,8 @@
 import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
+import sys
+from urllib.request import urlopen
 
 
 
@@ -58,7 +60,7 @@ def is_valid(url):
         parsed = urlparse(url)
         #need to check for valid domains
         valid_domains = [".ics.uci.edu", "cs.uci.edu", ".informatics.uci.edu", ".stat.uci.edu"]
-        print(parsed)
+        print(parsed.scheme + "://" + parsed.netloc + "/robots.txt")
 
 
         if parsed.scheme not in set(["http", "https"]):
@@ -72,6 +74,8 @@ def is_valid(url):
         #     if domain not in parsed.hostname:
         #         return False
 
+        check_robot(parsed.scheme + "://" + parsed.netloc + "/robots.txt")
+
         return not re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -82,6 +86,24 @@ def is_valid(url):
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
 
+        
+
     except TypeError:
         print ("TypeError for ", parsed)
         raise
+
+def check_robot(robotTxtURL):
+    # I used this to see how to open and read contents from a URL
+    # https://stackoverflow.com/questions/15138614/how-can-i-read-the-contents-of-an-url-with-python
+    robotTxt = urlopen(robotTxtURL)
+    f = urlopen(robotTxtURL)
+    myfile = f.readline()
+    while len(myfile) != 0:
+        print(myfile)
+        myfile = f.readline()
+    
+    
+
+if __name__ == "__main__":
+    print()
+    is_valid(sys.argv[1])

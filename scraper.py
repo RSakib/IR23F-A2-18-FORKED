@@ -1,14 +1,42 @@
 import re
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
+import nltk
+from nltk.corpus import stopwords
 import sys
 from urllib.robotparser import RobotFileParser
 
 rTxt = RobotFileParser()
+TOKENLIST = [] #global token list
+WORDFREQ = {} #global words frequencies
+NUM_WORDS = 0 #total number of words
+UNIQUE_URLS = 0 #number of unique URLs
 
 
 def scraper(url, resp):
-    links = extract_next_links(url, resp)
+
+    # getting stop words
+    stops = set(stopwords.words('english'))
+    soup = BeautifulSoup(resp.raw_response.content, "lxml")
+    # line 30 is needed for tokenizer from nltk, just run it once then you can comment it out
+    nltk.download('punkt')
+    # Tokenizing the website
+    dummy_text = soup.get_text()
+
+    # tokenizing the website, filtering stop words and non alphanumerics
+    text_tokens = nltk.tokenize.word_tokenize(dummy_text.lower())
+    filtered_words = [word for word in text_tokens if word not in stops]
+    cleaned_list = [word for word in filtered_words if word.isalnum()]
+
+    #recording the number of word frequencies
+    for word in cleaned_list:
+        if word in WORDFREQ:
+            WORDFREQ[word] += 1
+        else:
+            WORDFREQ[word] = 1
+    # to check the frequencies of words
+    #print(WORDFREQ)
+
     return [link for link in links if is_valid(link)]
 
 def extract_next_links(url, resp):
@@ -21,25 +49,17 @@ def extract_next_links(url, resp):
     next_links = []
     if(resp.status == 200):
 
-        soup = BeautifulSoup(resp.raw_response.content, "html.parser")
+        soup = BeautifulSoup(resp.raw_response.content, "lxml")
         links = soup.find_all('a')
-        dummycounter = 0
-        counter = 50
+        #Getting out links
         for link in links:
             dummy_link = link.get('href')
-            dummycounter += 1
-
             #checking for fragments of pages
             if "#" in dummy_link:
                 print("# found")
 
-            #print(dummy_link)
+            #this function slowing us down bruh
             next_links.append(dummy_link)
-            if dummycounter == counter:
-                break
-
-
-
 
     else:
         print(resp.error)
@@ -48,7 +68,6 @@ def extract_next_links(url, resp):
     #         resp.raw_response.content: the content of the page!
 
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-
     return next_links
 
 def is_valid(url):
@@ -66,7 +85,7 @@ def is_valid(url):
         if parsed.netloc == None or parsed.hostname == None:
             return False
 
-        #Ensure url is within specific domains
+        # #Ensure url is within specific domains
         inDomain = False
         for domain in valid_domains:
             if domain in parsed.hostname:

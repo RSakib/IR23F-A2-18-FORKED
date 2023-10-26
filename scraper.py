@@ -7,6 +7,8 @@ import sys
 from urllib.robotparser import RobotFileParser
 
 rTxt = RobotFileParser()
+global currentRobotBaseUrl
+currentRobotBaseUrl = ""
 TOKENLIST = [] #global token list
 WORDFREQ = {} #global words frequencies
 NUM_WORDS = 0 #total number of words
@@ -93,9 +95,13 @@ def is_valid(url):
         if not inDomain:
             #If not in domain, return false
             return False
-        #Check Robots.txt
-        rTxt.set_url(parsed.scheme + "://" + parsed.netloc + "/robots.txt")
-        rTxt.read()
+        # Check Robots.txt for politeness
+        # Got it from here: https://docs.python.org/3/library/urllib.robotparser.html
+        global currentRobotBaseUrl
+        if parsed.netloc != currentRobotBaseUrl:
+            rTxt.set_url(parsed.scheme + "://" + parsed.netloc + "/robots.txt")
+            rTxt.read()
+        currentRobotBaseUrl = parsed.netloc
         if not (rTxt.can_fetch("*", url)):
             print("Robots.txt, url disallowed")
             return False

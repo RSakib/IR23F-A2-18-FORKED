@@ -14,11 +14,11 @@ UNIQUE_URLS = 0 #number of unique URLs
 
 
 def scraper(url, resp):
-
+    links = extract_next_links(url, resp)
     # getting stop words
     stops = set(stopwords.words('english'))
     soup = BeautifulSoup(resp.raw_response.content, "lxml")
-    # line 30 is needed for tokenizer from nltk, just run it once then you can comment it out
+    # line 30 is needed for tokenizer from nltk, just run it once the
     nltk.download('punkt')
     # Tokenizing the website
     dummy_text = soup.get_text()
